@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Lagerbestand - Easy Supermarkt</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        th { background-color: #f4f4f4; }
+        tr:nth-child(even) { background-color: #f8f8f8; }
+        nav { margin-bottom: 20px; }
+        nav a { margin-right: 15px; text-decoration: none; color: #333; }
+        nav a:hover { text-decoration: underline; }
+        .low-stock { background-color: #ffebee; }
+        .search { margin: 20px 0; }
+        .search input { padding: 5px; width: 200px; }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="locations.html">Standorte</a>
+        <a href="products.html">Produkte</a>
+        <a href="stock.html">Lagerbestand</a>
+    </nav>
+    <h1>Lagerbestand</h1>
+
+    <div class="search">
+        <input type="text" id="searchInput" placeholder="Produkt suchen...">
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Produkt ID</th>
+                <th>Produkt</th>
+                <th>Aachen</th>
+                <th>Hamm</th>
+                <th>Köln</th>
+                <th>Düsseldorf</th>
+                <th>Düren</th>
+            </tr>
+        </thead>
+        <tbody id="stockBody"></tbody>
+    </table>
+
+    <script>
+        // Produkt-CSV-Daten
+        const productData = `Produkt_ID,Name,Kategorie,Bereich,Regal,Preis
+1,Vollmilch 3.5%,Milchprodukte,Kühlregal,A1,1.29
+2,Gouda jung,Milchprodukte,Kühlregal,A1,2.49
+3,Naturjoghurt,Milchprodukte,Kühlregal,A1,0.89
+4,Butter,Milchprodukte,Kühlregal,A1,2.99
+5,Sahne,Milchprodukte,Kühlregal,A1,1.79
+6,Frischkäse,Milchprodukte,Kühlregal,A2,1.99
+7,Mozzarella,Milchprodukte,Kühlregal,A2,1.29
+8,Quark,Milchprodukte,Kühlregal,A2,0.89
+9,Schlagsahne,Milchprodukte,Kühlregal,A2,2.49
+10,Buttermilch,Milchprodukte,Kühlregal,A2,1.19
+11,Äpfel Braeburn,Obst & Gemüse,Frischeabteilung,B1,2.99
+12,Bananen,Obst & Gemüse,Frischeabteilung,B1,1.99
+13,Orangen,Obst & Gemüse,Frischeabteilung,B1,2.49
+14,Zitronen,Obst & Gemüse,Frischeabteilung,B1,1.79
+15,Birnen,Obst & Gemüse,Frischeabteilung,B1,2.29
+16,Kartoffeln,Obst & Gemüse,Frischeabteilung,B2,3.99
+17,Karotten,Obst & Gemüse,Frischeabteilung,B2,1.29
+18,Zwiebeln,Obst & Gemüse,Frischeabteilung,B2,0.99
+19,Tomaten,Obst & Gemüse,Frischeabteilung,B2,2.49
+20,Gurken,Obst & Gemüse,Frischeabteilung,B2,1.79
+21,Vollkornbrot,Backwaren,Bäckerei,C1,2.29
+22,Brötchen,Backwaren,Bäckerei,C1,0.35
+23,Croissants,Backwaren,Bäckerei,C1,1.19
+24,Baguette,Backwaren,Bäckerei,C1,1.79
+25,Mehrkornbrot,Backwaren,Bäckerei,C1,2.99
+26,Nudeln,Grundnahrungsmittel,Trockenware,D1,0.99
+27,Reis,Grundnahrungsmittel,Trockenware,D1,1.99
+28,Mehl,Grundnahrungsmittel,Trockenware,D1,0.89
+29,Zucker,Grundnahrungsmittel,Trockenware,D1,0.99
+30,Salz,Grundnahrungsmittel,Trockenware,D1,0.49
+31,Cola,Getränke,Getränkeabteilung,E1,1.29
+32,Mineralwasser,Getränke,Getränkeabteilung,E1,0.59
+33,Orangensaft,Getränke,Getränkeabteilung,E1,1.99
+34,Apfelsaft,Getränke,Getränkeabteilung,E1,1.79
+35,Limonade,Getränke,Getränkeabteilung,E1,0.99
+36,Kaffee,Getränke,Trockenware,D2,4.99
+37,Tee,Getränke,Trockenware,D2,2.99
+38,Kakao,Getränke,Trockenware,D2,3.49
+39,Milchpulver,Getränke,Trockenware,D2,2.99
+40,Instantkaffee,Getränke,Trockenware,D2,5.99
+41,Schokolade,Süßwaren,Süßigkeiten,F1,1.29
+42,Gummibärchen,Süßwaren,Süßigkeiten,F1,0.99
+43,Chips,Süßwaren,Süßigkeiten,F1,1.79
+44,Kekse,Süßwaren,Süßigkeiten,F1,1.49
+45,Bonbons,Süßwaren,Süßigkeiten,F1,0.79
+46,Waschmittel,Drogerie,Waschbereich,G1,9.99
+47,Spülmittel,Drogerie,Waschbereich,G1,1.99
+48,Toilettenpapier,Drogerie,Hygiene,G2,4.99
+49,Zahnpasta,Drogerie,Hygiene,G2,1.99
+50,Duschgel,Drogerie,Hygiene,G2,2.49
+51,Schweinefleisch,Fleisch,Fleischtheke,H1,5.99
+52,Rindfleisch,Fleisch,Fleischtheke,H1,8.99
+53,Hähnchenbrust,Fleisch,Fleischtheke,H1,6.99
+54,Hackfleisch,Fleisch,Fleischtheke,H1,4.99
+55,Würstchen,Fleisch,Fleischtheke,H1,3.99
+56,Thunfisch,Konserven,Trockenware,D3,1.99
+57,Erbsen,Konserven,Trockenware,D3,0.99
+58,Mais,Konserven,Trockenware,D3,0.89
+59,Tomatenmark,Konserven,Trockenware,D3,0.79
+60,Champignons,Konserven,Trockenware,D3,1.29
+61,Olivenöl,Öle & Fette,Trockenware,D4,4.99
+62,Sonnenblumenöl,Öle & Fette,Trockenware,D4,2.99
+63,Margarine,Öle & Fette,Kühlregal,A3,1.99
+64,Rapsöl,Öle & Fette,Trockenware,D4,2.49
+65,Kokosöl,Öle & Fette,Trockenware,D4,3.99
+66,Pizza TK,Tiefkühlkost,Tiefkühlabteilung,I1,2.99
+67,Pommes TK,Tiefkühlkost,Tiefkühlabteilung,I1,1.99
+68,Gemüse TK,Tiefkühlkost,Tiefkühlabteilung,I1,1.79
+69,Eis,Tiefkühlkost,Tiefkühlabteilung,I2,2.99
+70,Fertiggerichte TK,Tiefkühlkost,Tiefkühlabteilung,I2,3.99
+71,Ketchup,Saucen,Trockenware,D5,1.79
+72,Mayonnaise,Saucen,Trockenware,D5,1.99
+73,Senf,Saucen,Trockenware,D5,0.99
+74,Grillsauce,Saucen,Trockenware,D5,2.49
+75,Salatdressing,Saucen,Trockenware,D5,1.99
+76,Hundefutter,Tierbedarf,Tiernahrung,J1,2.99
+77,Katzenfutter,Tierbedarf,Tiernahrung,J1,2.49
+78,Katzenstreu,Tierbedarf,Tiernahrung,J1,4.99
+79,Vogelfutter,Tierbedarf,Tiernahrung,J1,1.99
+80,Hamsterfutter,Tierbedarf,Tiernahrung,J1,1.49
+81,Zigaretten,Tabakwaren,Kasse,K1,8.00
+82,Tabak,Tabakwaren,Kasse,K1,7.00
+83,Feuerzeug,Tabakwaren,Kasse,K1,1.00
+84,Streichhölzer,Tabakwaren,Kasse,K1,0.50
+85,Filter,Tabakwaren,Kasse,K1,1.50
+86,Müsli,Frühstück,Trockenware,D6,2.99
+87,Cornflakes,Frühstück,Trockenware,D6,1.99
+88,Marmelade,Frühstück,Trockenware,D6,1.79
+89,Honig,Frühstück,Trockenware,D6,3.99
+90,Nutella,Frühstück,Trockenware,D6,3.49
+91,Papier,Bürobedarf,Schreibwaren,L1,1.99
+92,Stifte,Bürobedarf,Schreibwaren,L1,0.99
+93,Kleber,Bürobedarf,Schreibwaren,L1,1.49
+94,Schere,Bürobedarf,Schreibwaren,L1,2.99
+95,Tesa,Bürobedarf,Schreibwaren,L1,1.99
+96,Batterien,Elektronik,Kasse,K2,3.99
+97,Glühbirnen,Elektronik,Kasse,K2,2.99
+98,USB-Stick,Elektronik,Kasse,K2,9.99
+99,Kopfhörer,Elektronik,Kasse,K2,7.99
+100,Ladekabel,Elektronik,Kasse,K2,4.99`; // Gekürzt zur besseren Übersicht
+
+        // Stock-CSV-Daten
+        const stockData = `Produkt_ID,Aachen,Hamm,Köln,Düsseldorf,Düren
+1,45,32,67,89,23
+2,34,28,56,78,31
+3,56,45,89,120,43
+4,23,34,67,88,22
+5,78,65,98,145,56
+6,89,76,123,167,78
+7,45,34,78,98,45
+8,67,54,87,134,56
+9,34,28,65,87,34
+10,123,98,167,234,89
+11,45,32,67,89,23
+12,34,28,56,78,31
+13,56,45,89,120,43
+14,23,34,67,88,22
+15,78,65,98,145,56
+16,89,76,123,167,78
+17,45,34,78,98,45
+18,67,54,87,134,56
+19,34,28,65,87,34
+20,123,98,167,234,89
+21,67,54,87,134,56
+22,34,28,65,87,34
+23,123,98,167,234,89
+24,45,32,67,89,23
+25,34,28,56,78,31
+26,56,45,89,120,43
+27,23,34,67,88,22
+28,78,65,98,145,56
+29,89,76,123,167,78
+30,45,34,78,98,45
+31,67,54,87,134,56
+32,34,28,65,87,34
+33,123,98,167,234,89
+34,45,32,67,89,23
+35,34,28,56,78,31
+36,56,45,89,120,43
+37,23,34,67,88,22
+38,78,65,98,145,56
+39,89,76,123,167,78
+40,45,34,78,98,45
+41,67,54,87,134,56
+42,34,28,65,87,34
+43,123,98,167,234,89
+44,45,32,67,89,23
+45,34,28,56,78,31
+46,56,45,89,120,43
+47,23,34,67,88,22
+48,78,65,98,145,56
+49,89,76,123,167,78
+50,45,34,78,98,45
+51,67,54,87,134,56
+52,34,28,65,87,34
+53,123,98,167,234,89
+54,45,32,67,89,23
+55,34,28,56,78,31
+56,56,45,89,120,43
+57,23,34,67,88,22
+58,78,65,98,145,56
+59,89,76,123,167,78
+60,45,34,78,98,45
+61,67,54,87,134,56
+62,34,28,65,87,34
+63,123,98,167,234,89
+64,45,32,67,89,23
+65,34,28,56,78,31
+66,56,45,89,120,43
+67,23,34,67,88,22
+68,78,65,98,145,56
+69,89,76,123,167,78
+70,45,34,78,98,45
+71,67,54,87,134,56
+72,34,28,65,87,34
+73,123,98,167,234,89
+74,45,32,67,89,23
+75,34,28,56,78,31
+76,56,45,89,120,43
+77,23,34,67,88,22
+78,78,65,98,145,56
+79,89,76,123,167,78
+80,45,34,78,98,45
+81,67,54,87,134,56
+82,34,28,65,87,34
+83,123,98,167,234,89
+84,45,32,67,89,23
+85,34,28,56,78,31
+86,56,45,89,120,43
+87,23,34,67,88,22
+88,78,65,98,145,56
+89,89,76,123,167,78
+90,45,34,78,98,45
+91,67,54,87,134,56
+92,34,28,65,87,34
+93,123,98,167,234,89
+94,45,32,67,89,23
+95,34,28,56,78,31
+96,56,45,89,120,43
+97,23,34,67,88,22
+98,78,65,98,145,56
+99,89,76,123,167,78
+100,45,34,78,98,45`; // Gekürzt zur besseren Übersicht
+
+        const productRows = productData.split('\n');
+        const stockRows = stockData.split('\n');
+        
+        const productHeader = productRows[0].split(',');
+        const stockHeader = stockRows[0].split(',');
+        
+        const products = productRows.slice(1)
+            .filter(row => row.trim() !== '')
+            .map(row => {
+                const values = row.split(',');
+                return Object.fromEntries(productHeader.map((h, i) => [h, values[i]]));
+            });
+
+        const stockEntries = stockRows.slice(1)
+            .filter(row => row.trim() !== '')
+            .map(row => {
+                const values = row.split(',');
+                return Object.fromEntries(stockHeader.map((h, i) => [h, values[i]]));
+            });
+
+        function displayStock(filterText = '') {
+            const tbody = document.getElementById('stockBody');
+            tbody.innerHTML = '';
+
+            stockEntries
+                .filter(stock => {
+                    const product = products.find(p => p.Produkt_ID === stock.Produkt_ID);
+                    return filterText === '' || 
+                           product.Name.toLowerCase().includes(filterText.toLowerCase()) ||
+                           stock.Produkt_ID.includes(filterText);
+                })
+                .forEach(stock => {
+                    const product = products.find(p => p.Produkt_ID === stock.Produkt_ID);
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${stock.Produkt_ID}</td>
+                        <td>${product ? product.Name : 'Unbekannt'}</td>
+                        <td class="${parseInt(stock.Aachen) < 30 ? 'low-stock' : ''}">${stock.Aachen}</td>
+                        <td class="${parseInt(stock.Hamm) < 30 ? 'low-stock' : ''}">${stock.Hamm}</td>
+                        <td class="${parseInt(stock.Köln) < 30 ? 'low-stock' : ''}">${stock.Köln}</td>
+                        <td class="${parseInt(stock.Düsseldorf) < 30 ? 'low-stock' : ''}">${stock.Düsseldorf}</td>
+                        <td class="${parseInt(stock.Düren) < 30 ? 'low-stock' : ''}">${stock.Düren}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+        }
+
+        displayStock();
+
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            displayStock(e.target.value);
+        });
+    </script>
+</body>
+</html>

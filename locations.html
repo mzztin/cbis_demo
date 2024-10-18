@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Standorte - Easy Supermarkt</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .location { border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        nav { margin-bottom: 20px; }
+        nav a { margin-right: 15px; text-decoration: none; color: #333; }
+        nav a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="locations.html">Standorte</a>
+        <a href="products.html">Produkte</a>
+        <a href="stock.html">Lagerbestand</a>
+    </nav>
+    <h1>Easy Supermarkt Standorte</h1>
+    <div id="locations"></div>
+
+    <script>
+        // CSV-Daten direkt eingebettet
+        const csvData = `Name,Adresse,Email,Telefon,Öffnungstage,Öffnungszeiten
+easy Aachen,"Peterstraße 123, 52062 Aachen",aachen@easy-markt.de,0241-1234567,"Montag-Samstag","08:00-21:00"
+easy Hamm,"Weststraße 45, 59065 Hamm",hamm@easy-markt.de,02381-9876543,"Montag-Samstag","08:00-21:00"
+easy Köln,"Hohenzollernring 78, 50672 Köln",koeln@easy-markt.de,0221-3456789,"Montag-Samstag","07:00-22:00"
+easy Düsseldorf,"Königsallee 156, 40215 Düsseldorf",duesseldorf@easy-markt.de,0211-4567890,"Montag-Sonntag","07:00-22:00"
+easy Düren,"Hauptstraße 34, 52349 Düren",dueren@easy-markt.de,02421-5678901,"Montag-Samstag","08:00-21:00"`;
+
+        const rows = csvData.split('\n');
+        const header = rows[0].split(',');
+        const locations = rows.slice(1)
+            .filter(row => row.trim() !== '')
+            .map(row => {
+                // Behandelt Kommas innerhalb von Anführungszeichen
+                const values = row.match(/(".*?"|[^,]+)/g).map(v => v.replace(/^"|"$/g, ''));
+                return Object.fromEntries(header.map((h, i) => [h, values[i]]));
+            });
+
+        const container = document.getElementById('locations');
+        locations.forEach(loc => {
+            container.innerHTML += `
+                <div class="location">
+                    <h2>${loc.Name}</h2>
+                    <p>Adresse: ${loc.Adresse}</p>
+                    <p>Email: ${loc.Email}</p>
+                    <p>Telefon: ${loc.Telefon}</p>
+                    <p>Öffnungszeiten: ${loc.Öffnungstage}, ${loc.Öffnungszeiten}</p>
+                </div>
+            `;
+        });
+    </script>
+</body>
+</html>
