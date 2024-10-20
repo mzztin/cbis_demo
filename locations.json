@@ -1,0 +1,37 @@
+[
+  {
+    "Name": "easy Aachen",
+    "Address": "Peterstraße 123, 52062 Aachen",
+    "Email": "aachen@easy-markt.de",
+    "Phone": "0241-1234567",
+    "Opening Hours": "Montag-Samstag, 08:00-21:00"
+  },
+  {
+    "Name": "easy Hamm",
+    "Address": "Weststraße 45, 59065 Hamm",
+    "Email": "hamm@easy-markt.de",
+    "Phone": "02381-9876543",
+    "Opening Hours": "Montag-Samstag, 08:00-21:00"
+  },
+  {
+    "Name": "easy Köln",
+    "Address": "Hohenzollernring 78, 50672 Köln",
+    "Email": "koeln@easy-markt.de",
+    "Phone": "0221-3456789",
+    "Opening Hours": "Montag-Samstag, 07:00-22:00"
+  },
+  {
+    "Name": "easy Düsseldorf",
+    "Address": "K”nigsallee 156, 40215 Düsseldorf",
+    "Email": "duesseldorf@easy-markt.de",
+    "Phone": "0211-4567890",
+    "Opening Hours": "Montag-Samstag, 07:00-24:00"
+  },
+  {
+    "Name": "easy Düren",
+    "Address": "Hauptstraáe 34, 52349 Düren",
+    "Email": "dueren@easy-markt.de",
+    "Phone": "02421-5678901",
+    "Opening Hours": "Montag-Samstag, 08:00-21:00"
+  }
+]
